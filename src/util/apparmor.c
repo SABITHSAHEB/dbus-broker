@@ -35,9 +35,6 @@ struct BusAppArmorRegistry {
  *
  * If the AppArmor module is not loaded, or AppArmor is disabled in the
  * kernel, set @enabledp to 'false', otherwise set it to 'true'.
-static bool query_len_add(size_t *len, size_t add) {
-        return __builtin_add_overflow(*len, add, len);
-}
  *
  * Returns: 0 if check succeeded, or negative error code on failure.
  */
@@ -66,13 +63,13 @@ int bus_apparmor_is_enabled(bool *enabledp) {
                 }
         } else if (errno == ENOENT) {
                 enabled = false;
-                                        int i = 0, len;
+        } else {
+                return error_origin(-errno);
+        }
 
-                                        len = AA_QUERY_CMD_LABEL_SIZE;
-                                        len += strlen(security_label) + 1;
-                                        len += 1; /* AA_CLASS_DBUS */
-                                        len += strlen(bustype) + 1;
-                                        len += strlen(name) + 1;
+        *enabledp = enabled;
+        return 0;
+}
 
 /**
  * bus_apparmor_dbus_supported() - check for apparmor dbus support
@@ -255,7 +252,7 @@ static int build_message_query(
         char *qstr;
         size_t i = 0, len = AA_QUERY_CMD_LABEL_SIZE;
 
-                if (__builtin_add_overflow(len, strlen(security_label) + 1, &len) || __builtin_add_overflow(len, 1, &len) || __builtin_add_overflow(len, strlen(bustype) + 1, &len) || __builtin_add_overflow(len, strlen(receiver_context) + 1, &len) || __builtin_add_overflow(len, strlen(name) + 1, &len) || (path && __builtin_add_overflow(len, strlen(path) + 1, &len)) || (interface && __builtin_add_overflow(len, strlen(interface) + 1, &len)) || (method && __builtin_add_overflow(len, strlen(method) + 1, &len)))
+        if (__builtin_add_overflow(len, strlen(security_label) + 1, &len) || __builtin_add_overflow(len, 1, &len) || __builtin_add_overflow(len, strlen(bustype) + 1, &len) || __builtin_add_overflow(len, strlen(receiver_context) + 1, &len) || __builtin_add_overflow(len, strlen(name) + 1, &len) || (path && __builtin_add_overflow(len, strlen(path) + 1, &len)) || (interface && __builtin_add_overflow(len, strlen(interface) + 1, &len)) || (method && __builtin_add_overflow(len, strlen(method) + 1, &len)))
                 return error_origin(-EOVERFLOW);
 
         qstr = malloc(len);
