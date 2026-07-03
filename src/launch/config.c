@@ -1165,8 +1165,14 @@ static void config_parser_end_fn(void *userdata, const XML_Char *name) {
 
         case CONFIG_NODE_LIMIT:
                 r = util_strtou64(&state->current->limit.value, state->current->cdata);
-                if (r)
-                        CONFIG_ERR(state, "Invalid limit value", ": %s", state->current->cdata);
+                if (r) {
+                        if (r == UTIL_STRING_E_RANGE)
+                                CONFIG_ERR(state, "Limit value out of range", ": %s", state->current->cdata);
+                        else
+                                CONFIG_ERR(state, "Invalid limit value", ": %s", state->current->cdata);
+                } else if (state->current->limit.value > UINT32_MAX && state->current->limit.value != UINT64_MAX) {
+                        CONFIG_ERR(state, "Limit value out of range", ": %s", state->current->cdata);
+                }
 
                 break;
 

@@ -129,7 +129,7 @@ static int parse_argv(int argc, char *argv[]) {
 
                 case ARG_MAX_BYTES:
                         r = util_strtou64(&main_arg_max_bytes, optarg);
-                        if (r) {
+                        if (r || (main_arg_max_bytes > UINT32_MAX && main_arg_max_bytes != UINT64_MAX)) {
                                 fprintf(stderr, "%s: invalid max number of bytes -- '%s'\n", program_invocation_name, optarg);
                                 return MAIN_FAILED;
                         }
@@ -138,7 +138,7 @@ static int parse_argv(int argc, char *argv[]) {
 
                 case ARG_MAX_FDS:
                         r = util_strtou64(&main_arg_max_fds, optarg);
-                        if (r) {
+                        if (r || (main_arg_max_fds > UINT32_MAX && main_arg_max_fds != UINT64_MAX)) {
                                 fprintf(stderr, "%s: invalid max number of fds -- '%s'\n", program_invocation_name, optarg);
                                 return MAIN_FAILED;
                         }
@@ -147,7 +147,7 @@ static int parse_argv(int argc, char *argv[]) {
 
                 case ARG_MAX_MATCHES:
                         r = util_strtou64(&main_arg_max_matches, optarg);
-                        if (r) {
+                        if (r || (main_arg_max_matches > UINT32_MAX && main_arg_max_matches != UINT64_MAX)) {
                                 fprintf(stderr, "%s: invalid max number of matches -- '%s'\n", program_invocation_name, optarg);
                                 return MAIN_FAILED;
                         }
@@ -156,7 +156,7 @@ static int parse_argv(int argc, char *argv[]) {
 
                 case ARG_MAX_OBJECTS:
                         r = util_strtou64(&main_arg_max_objects, optarg);
-                        if (r) {
+                        if (r || (main_arg_max_objects > UINT32_MAX && main_arg_max_objects != UINT64_MAX)) {
                                 fprintf(stderr, "%s: invalid max number of objects -- '%s'\n", program_invocation_name, optarg);
                                 return MAIN_FAILED;
                         }

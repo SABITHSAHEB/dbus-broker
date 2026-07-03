@@ -15,7 +15,20 @@ int util_strtou32(uint32_t *valp, const char *string) {
         unsigned long val;
         char *end;
 
+        const char *p = string;
+
         static_assert(sizeof(val) >= sizeof(uint32_t), "unsigned long is less than 32 bits");
+
+        while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r' || *p == '\v' || *p == '\f')
+                p++;
+
+        if (*p == '-') {
+                if (p[1] == '1' && (p[2] == '\0' || p[2] == ' ' || p[2] == '\t' || p[2] == '\n' || p[2] == '\r')) {
+                        *valp = UINT32_MAX;
+                        return 0;
+                }
+                return UTIL_STRING_E_INVALID;
+        }
 
         errno = 0;
         val = strtoul(string, &end, 10);
@@ -39,7 +52,20 @@ int util_strtou64(uint64_t *valp, const char *string) {
         unsigned long long val;
         char *end;
 
+        const char *p = string;
+
         static_assert(sizeof(val) >= sizeof(uint64_t), "unsigned long long is less than 64 bits");
+
+        while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r' || *p == '\v' || *p == '\f')
+                p++;
+
+        if (*p == '-') {
+                if (p[1] == '1' && (p[2] == '\0' || p[2] == ' ' || p[2] == '\t' || p[2] == '\n' || p[2] == '\r')) {
+                        *valp = UINT64_MAX;
+                        return 0;
+                }
+                return UTIL_STRING_E_INVALID;
+        }
 
         errno = 0;
         val = strtoull(string, &end, 10);
