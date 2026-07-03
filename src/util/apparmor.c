@@ -35,6 +35,9 @@ struct BusAppArmorRegistry {
  *
  * If the AppArmor module is not loaded, or AppArmor is disabled in the
  * kernel, set @enabledp to 'false', otherwise set it to 'true'.
+static bool query_len_add(size_t *len, size_t add) {
+        return __builtin_add_overflow(*len, add, len);
+}
  *
  * Returns: 0 if check succeeded, or negative error code on failure.
  */
@@ -63,13 +66,13 @@ int bus_apparmor_is_enabled(bool *enabledp) {
                 }
         } else if (errno == ENOENT) {
                 enabled = false;
-        } else {
-                return error_origin(-errno);
-        }
+                                        int i = 0, len;
 
-        *enabledp = enabled;
-        return 0;
-}
+                                        len = AA_QUERY_CMD_LABEL_SIZE;
+                                        len += strlen(security_label) + 1;
+                                        len += 1; /* AA_CLASS_DBUS */
+                                        len += strlen(bustype) + 1;
+                                        len += strlen(name) + 1;
 
 /**
  * bus_apparmor_dbus_supported() - check for apparmor dbus support
@@ -219,6 +222,7 @@ static int build_service_query(
         len += 1; /* AA_CLASS_DBUS */
         len += strlen(bustype) + 1;
         len += strlen(name) + 1;
+
         qstr = malloc(len);
         if (!qstr)
                 return error_origin(-ENOMEM);
@@ -249,20 +253,10 @@ static int build_message_query(
         const char *method
 ) {
         char *qstr;
-        int i = 0, len;
+        size_t i = 0, len = AA_QUERY_CMD_LABEL_SIZE;
 
-        len = AA_QUERY_CMD_LABEL_SIZE;
-        len += strlen(security_label) + 1;
-        len += 1; /* AA_CLASS_DBUS */
-        len += strlen(bustype) + 1;
-        len += strlen(receiver_context) + 1;
-        len += strlen(name) + 1;
-        if (path)
-                len += strlen(path) + 1;
-        if (interface)
-                len += strlen(interface) + 1;
-        if (method)
-                len += strlen(method) + 1;
+                if (__builtin_add_overflow(len, strlen(security_label) + 1, &len) || __builtin_add_overflow(len, 1, &len) || __builtin_add_overflow(len, strlen(bustype) + 1, &len) || __builtin_add_overflow(len, strlen(receiver_context) + 1, &len) || __builtin_add_overflow(len, strlen(name) + 1, &len) || (path && __builtin_add_overflow(len, strlen(path) + 1, &len)) || (interface && __builtin_add_overflow(len, strlen(interface) + 1, &len)) || (method && __builtin_add_overflow(len, strlen(method) + 1, &len)))
+                return error_origin(-EOVERFLOW);
 
         qstr = malloc(len);
         if (!qstr)
@@ -309,6 +303,7 @@ static int build_eavesdrop_query(
         len += strlen(security_label) + 1;
         len += 1; /* AA_CLASS_DBUS */
         len += strlen(bustype) + 1;
+
         qstr = malloc(len);
         if (!qstr)
                 return error_origin(-ENOMEM);
