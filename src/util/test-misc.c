@@ -223,6 +223,8 @@ static void test_string(void) {
         /* Test positive numbers */
         c_assert(util_strtou32(&u32, "123") == 0);
         c_assert(u32 == 123);
+        c_assert(util_strtou64(&u64, "123") == 0);
+        c_assert(u64 == 123);
 
         /* Test negative numbers (should fail) */
         c_assert(util_strtou32(&u32, "-1") == UTIL_STRING_E_INVALID);
@@ -236,6 +238,7 @@ static void test_string(void) {
 
         /* Test overflow */
         c_assert(util_strtou32(&u32, "4294967296") == UTIL_STRING_E_RANGE);
+        c_assert(util_strtou64(&u64, "18446744073709551616") == UTIL_STRING_E_RANGE);
 
         /* Test empty string */
         c_assert(util_strtou32(&u32, "") == UTIL_STRING_E_INVALID);
@@ -244,9 +247,11 @@ static void test_string(void) {
         c_assert(util_strtou32(&u32, "+123") == 0);
         c_assert(u32 == 123);
 
-        /* Test spaces */
-        c_assert(util_strtou32(&u32, "  123  ") == 0);
+        /* Test spaces: leading spaces are allowed, trailing spaces are not */
+        c_assert(util_strtou32(&u32, "  123") == 0);
         c_assert(u32 == 123);
+        c_assert(util_strtou32(&u32, "123  ") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou32(&u32, "  123  ") == UTIL_STRING_E_INVALID);
 }
 
 int main(int argc, char **argv) {
