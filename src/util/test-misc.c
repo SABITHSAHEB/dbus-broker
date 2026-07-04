@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "util/misc.h"
+#include "util/string.h"
 
 /*
  * Check for which memfd-seals are supported by the running kernel and return
@@ -213,11 +214,20 @@ static void test_vfreep(void) {
         c_assert(v[0] && v[1]);
         misc_vfreep(&v);
 }
+static void test_strtou_negative_values(void) {
+        uint32_t u;
+        uint64_t g;
+        c_assert(util_strtou32(&u, "-1") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou32(&u, "-0") == 0 && u == 0);
+        c_assert(util_strtou64(&g, " -1 ") == UTIL_STRING_E_INVALID);
+}
+
 
 int main(int argc, char **argv) {
         test_memfd();
         test_umul_saturating();
         test_casts();
         test_vfreep();
+        test_strtou_negative_values();
         return 0;
 }

@@ -11,11 +11,26 @@
 #include "util/error.h"
 #include "util/string.h"
 
+static bool string_is_negative(const char *string) {
+        while (*string == ' ' || (*string >= '\t' && *string <= '\r'))
+                string++;
+        if (*string == '-') {
+                string++;
+                while (*string == '0')
+                        string++;
+                return *string >= '1' && *string <= '9';
+        }
+        return false;
+}
+
 int util_strtou32(uint32_t *valp, const char *string) {
         unsigned long val;
         char *end;
 
         static_assert(sizeof(val) >= sizeof(uint32_t), "unsigned long is less than 32 bits");
+
+        if (string_is_negative(string))
+                return UTIL_STRING_E_INVALID;
 
         errno = 0;
         val = strtoul(string, &end, 10);
@@ -40,6 +55,9 @@ int util_strtou64(uint64_t *valp, const char *string) {
         char *end;
 
         static_assert(sizeof(val) >= sizeof(uint64_t), "unsigned long long is less than 64 bits");
+
+        if (string_is_negative(string))
+                return UTIL_STRING_E_INVALID;
 
         errno = 0;
         val = strtoull(string, &end, 10);
