@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "util/misc.h"
+#include "util/string.h"
 
 /*
  * Check for which memfd-seals are supported by the running kernel and return
@@ -214,10 +215,45 @@ static void test_vfreep(void) {
         misc_vfreep(&v);
 }
 
+static void test_string(void) {
+        uint32_t u32;
+        uint64_t u64;
+        int i;
+
+        /* Test positive numbers */
+        c_assert(util_strtou32(&u32, "123") == 0);
+        c_assert(u32 == 123);
+
+        /* Test negative numbers (should fail) */
+        c_assert(util_strtou32(&u32, "-1") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou32(&u32, "  -1") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou64(&u64, "-1") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou64(&u64, "  -1") == UTIL_STRING_E_INVALID);
+
+        /* Test signed parsing (should work) */
+        c_assert(util_strtoint(&i, "-5") == 0);
+        c_assert(i == -5);
+
+        /* Test overflow */
+        c_assert(util_strtou32(&u32, "4294967296") == UTIL_STRING_E_RANGE);
+
+        /* Test empty string */
+        c_assert(util_strtou32(&u32, "") == UTIL_STRING_E_INVALID);
+
+        /* Test plus sign */
+        c_assert(util_strtou32(&u32, "+123") == 0);
+        c_assert(u32 == 123);
+
+        /* Test spaces */
+        c_assert(util_strtou32(&u32, "  123  ") == 0);
+        c_assert(u32 == 123);
+}
+
 int main(int argc, char **argv) {
         test_memfd();
         test_umul_saturating();
         test_casts();
         test_vfreep();
+        test_string();
         return 0;
 }

@@ -18,6 +18,7 @@ enum {
         UTIL_STRING_E_RANGE,
 };
 
+/* Unsigned parsing functions reject negative values (returning UTIL_STRING_E_INVALID). */
 int util_strtou32(uint32_t *valp, const char *string);
 int util_strtou64(uint64_t *valp, const char *string);
 int util_strtoint(int *valp, const char *string);
