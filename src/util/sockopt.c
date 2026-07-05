@@ -11,6 +11,10 @@
 #include "util/error.h"
 #include "util/sockopt.h"
 
+#ifndef SO_PEERPIDFD
+#  define SO_PEERPIDFD 77
+#endif
+
 int sockopt_get_peersec(int fd, char **labelp, size_t *lenp) {
         _c_cleanup_(c_freep) char *label = NULL;
         socklen_t len = 1023;
