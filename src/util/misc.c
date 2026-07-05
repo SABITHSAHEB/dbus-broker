@@ -74,7 +74,7 @@ int misc_memfd(const char *name, unsigned int uflags, unsigned int useals) {
          */
         if (!(flags & MISC_MFD_ALLOW_SEALING)) {
                 if (seals & ~MISC_F_SEAL_SEAL)
-                        return error_origin(-ENOTRECOVERABLE);
+                        return -ENOTRECOVERABLE;
 
                 /* Already set by the kernel if sealing is disabled. */
                 seals &= ~MISC_F_SEAL_SEAL;
@@ -86,7 +86,7 @@ int misc_memfd(const char *name, unsigned int uflags, unsigned int useals) {
          * our codebase. For older kernels, we strip these flags automatically.
          */
         if (!(flags & (MISC_MFD_EXEC | MISC_MFD_NOEXEC_SEAL)))
-                return error_origin(-ENOTRECOVERABLE);
+                return -ENOTRECOVERABLE;
 
         /*
          * Create the memfd. If the flags are not supported, strip the EXEC
