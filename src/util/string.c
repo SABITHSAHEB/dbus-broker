@@ -12,71 +12,56 @@
 #include "util/string.h"
 
 int util_strtou32(uint32_t *valp, const char *string) {
-        unsigned long val;
-        char *end;
-
-        static_assert(sizeof(val) >= sizeof(uint32_t), "unsigned long is less than 32 bits");
-
-        errno = 0;
-        val = strtoul(string, &end, 10);
-        if (errno != 0) {
-                if (errno == ERANGE)
-                        return UTIL_STRING_E_RANGE;
-
-                return error_origin(-errno);
-        } else if (*end || string == end) {
+        uint64_t val = 0;
+        if (!string || !*string)
                 return UTIL_STRING_E_INVALID;
-        } else if (val > UINT32_MAX) {
-                return UTIL_STRING_E_RANGE;
+        for (const char *p = string; *p; p++) {
+                if (*p < '0' || *p > '9')
+                        return UTIL_STRING_E_INVALID;
+                val = val * 10 + (*p - '0');
+                if (val > UINT32_MAX)
+                        return UTIL_STRING_E_RANGE;
         }
-
         *valp = val;
-
         return 0;
 }
 
 int util_strtou64(uint64_t *valp, const char *string) {
-        unsigned long long val;
-        char *end;
-
-        static_assert(sizeof(val) >= sizeof(uint64_t), "unsigned long long is less than 64 bits");
-
-        errno = 0;
-        val = strtoull(string, &end, 10);
-        if (errno != 0) {
-                if (errno == ERANGE)
-                        return UTIL_STRING_E_RANGE;
-
-                return error_origin(-errno);
-        } else if (*end || string == end) {
+        uint64_t val = 0;
+        if (!string || !*string)
                 return UTIL_STRING_E_INVALID;
-        } else if (val > UINT64_MAX) {
-                return UTIL_STRING_E_RANGE;
+        for (const char *p = string; *p; p++) {
+                if (*p < '0' || *p > '9')
+                        return UTIL_STRING_E_INVALID;
+                uint32_t d = *p - '0';
+                if (val > (UINT64_MAX - d) / 10)
+                        return UTIL_STRING_E_RANGE;
+                val = val * 10 + d;
         }
-
         *valp = val;
-
         return 0;
 }
 
 int util_strtoint(int *valp, const char *string) {
-        long val;
-        char *end;
-
-        errno = 0;
-        val = strtol(string, &end, 10);
-        if (errno != 0) {
-                if (errno == ERANGE)
-                        return UTIL_STRING_E_RANGE;
-
-                return error_origin(-errno);
-        } else if (*end || string == end) {
+        uint64_t val = 0;
+        bool neg;
+        if (!string || !*string)
                 return UTIL_STRING_E_INVALID;
-        } else if (val > INT_MAX || val < INT_MIN) {
-                return UTIL_STRING_E_RANGE;
+        neg = (*string == '-');
+        if (neg || *string == '+')
+                string++;
+        if (!*string)
+                return UTIL_STRING_E_INVALID;
+        for (const char *p = string; *p; p++) {
+                if (*p < '0' || *p > '9')
+                        return UTIL_STRING_E_INVALID;
+                uint32_t d = *p - '0';
+                uint64_t limit = neg ? (uint64_t)INT_MAX + 1 : INT_MAX;
+                if (val > (limit - d) / 10)
+                        return UTIL_STRING_E_RANGE;
+                val = val * 10 + d;
         }
-
-        *valp = val;
-
+        *valp = neg ? -(int)val : (int)val;
         return 0;
 }
+

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "util/misc.h"
+#include "util/string.h"
 
 /*
  * Check for which memfd-seals are supported by the running kernel and return
@@ -214,10 +215,23 @@ static void test_vfreep(void) {
         misc_vfreep(&v);
 }
 
+static void test_string_parsing(void) {
+        uint32_t u32;
+        uint64_t u64;
+        int i;
+
+        c_assert(!util_strtou32(&u32, "123") && u32 == 123);
+        c_assert(util_strtou32(&u32, "-1") == UTIL_STRING_E_INVALID);
+        c_assert(util_strtou32(&u32, "4294967296") == UTIL_STRING_E_RANGE);
+        c_assert(!util_strtou64(&u64, "18446744073709551615") && u64 == UINT64_MAX);
+        c_assert(!util_strtoint(&i, "-2147483648") && i == INT_MIN);
+}
+
 int main(int argc, char **argv) {
         test_memfd();
         test_umul_saturating();
         test_casts();
         test_vfreep();
+        test_string_parsing();
         return 0;
 }
