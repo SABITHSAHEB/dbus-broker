@@ -75,7 +75,14 @@ int util_strtoint(int *valp, const char *string) {
                         return UTIL_STRING_E_RANGE;
                 val = val * 10 + d;
         }
-        *valp = neg ? -(int)val : (int)val;
+        if (neg) {
+                if (val == (uint64_t)INT_MAX + 1)
+                        *valp = INT_MIN;
+                else
+                        *valp = -(int)val;
+        } else {
+                *valp = (int)val;
+        }
         return 0;
 }
 
